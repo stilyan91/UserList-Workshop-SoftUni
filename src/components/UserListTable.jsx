@@ -2,19 +2,47 @@ import UserListItem from "./UserListItem";
 import { useEffect, useState } from "react";
 // import { getAll } from "../services/userService";
 import * as userService from '../services/userService';
+import CreateUserModal from "./CreateUserModal";
 
 
 const UserListTable = () => {
     const [users, setUsers] = useState([]);
+    const [showCreate, setShowCreate] = useState(false);
 
     console.log(users)
     useEffect(() => {
         userService.getAll()
-            .then(result => setUsers(result));
-    },[])
+            .then(result => setUsers(result))
+            .catch(err => console.log(err))
+    },[]);
 
+const createUserClickHandler = () => {
+    setShowCreate(true);
+};
+
+const hideCreateUserModal = () => {
+    setShowCreate(false);
+}
+
+const userCreateHandler = async (e) => {
+    e.preventDefault();
+
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData);
+
+    const newUser = await (userService.create(data));
+    setUsers(state => [...state, newUser]);
+
+    setShowCreate(false);
+  
+};
     return (
         <div className="table-wrapper">
+            {showCreate && 
+                <CreateUserModal 
+                    hideModal={hideCreateUserModal}
+                    onUserCreate={userCreateHandler}
+                />}
             <table className="table">
                 <thead>
                     <tr>
@@ -76,8 +104,8 @@ const UserListTable = () => {
                             key={user._id}
                             createdAt={user.createdAt}
                             email={user.email}
-                            firstname={user.firstname}
-                            lastname={user.lastname}
+                            firstName={user.firstName}
+                            lastName={user.lastName}
                             imageUrl={user.imageUrl}
                             phoneNumber={user.phoneNumber}
                             updatedAt={user.updatedAt}
@@ -86,6 +114,8 @@ const UserListTable = () => {
 
                 </tbody>
             </table>
+            <button className="btn-add btn" onClick={createUserClickHandler}>Add new user</button>
+            
         </div>
     );
 };
